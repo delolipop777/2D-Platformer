@@ -19,13 +19,7 @@ Player::Player()
 
 void Player::handleInput(float dt) {
     // Horizontal movement
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-        velocity.x -= accel * dt;
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-        velocity.x += accel * dt;
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) velocity.x -= accel * dt;
+
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) velocity.x -= accel * dt;
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) velocity.x += accel * dt;
     else {
