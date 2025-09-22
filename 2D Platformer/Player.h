@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <SFML/Graphics.hpp>
 
 const float GRAVITY = 9.8f;
@@ -11,7 +11,7 @@ private:
 	sf::Vector2f position;
 	sf::Vector2f velocity;
 	sf::RectangleShape m_shape;
-	bool onGround = true;
+	int jumpCount = 0;
 	float maxSpeed;    // max horizontal speed
 	float accel;          // horizontal acceleration
 	float decel;         // horizontal deceleration
