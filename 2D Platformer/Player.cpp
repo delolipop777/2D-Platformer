@@ -19,12 +19,8 @@ Player::Player()
 
 void Player::handleInput(float dt) {
     // Horizontal movement
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-        velocity.x -= accel * dt;
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-        velocity.x += accel * dt;
-    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) velocity.x -= accel * dt;
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) velocity.x += accel * dt;
     else {
         // Apply deceleration when no input
         if (velocity.x > 0) {
@@ -58,11 +54,12 @@ void Player::update(float dt) {
     // Update position
     position += velocity * dt;
 
-    // Ground collision
-    if (position.y >= 500.0f) {
-        position.y = 500.0f;
-        velocity.y = 0.0f;
-        onGround = true;
+    // Simple ground collision
+    float groundLevel = 500.0f;
+    if (position.y >= groundLevel) {
+        position.y = groundLevel;
+        velocity.y = 0;
+        jumpCount = 0; // reset jumps on landing
     }
 
     m_shape.setPosition(position);
