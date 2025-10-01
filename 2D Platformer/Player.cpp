@@ -1,72 +1,108 @@
 #include "Player.h"
+#include <SFML/Window/Keyboard.hpp>
 
 Player::Player()
-    : health(100), score(0), position(400.0f, 500.0f), velocity(0.0f, 0.0f)
 {
-    m_shape.setSize(sf::Vector2f(50.0f, 50.0f));
-    m_shape.setFillColor(sf::Color::Blue);
-    m_shape.setPosition(position);
+    shape.setSize(sf::Vector2f(48.f, 64.f));
+    shape.setOrigin(shape.getSize() / 2.f);
+    shape.setFillColor(sf::Color(50, 120, 200));
 
-    // Tunable physics parameters
-    maxSpeed = 200.f;       // max horizontal speed
-    accel = 600.0f;          // horizontal acceleration
-    decel = 800.0f;          // horizontal deceleration
-    jumpStrength = -400.0f;  // upward impulse
-    gravity = 900.0f;        // pixels/s²
-    terminalVelocity = 600.0f;
+    maxSpeed = 260.f;
+    accel = 1600.f;
+    decel = 2000.f;
+    jumpStrength = -520.f;
+    gravity = 1600.f;
+    terminalVelocity = 1100.f;
+
+    position = sf::Vector2f(100.f, 600.f);
+    velocity = sf::Vector2f(0.f, 0.f);
     jumpCount = 0;
+    onGround = false;
+
+    shape.setPosition(position);
 }
 
-void Player::handleInput(float dt) {
-    // Horizontal movement
+void Player::resetTo(const sf::Vector2f& pos)
+{
+    position = pos;
+    velocity = { 0.f, 0.f };
+    jumpCount = 0;
+    onGround = false;
+    shape.setPosition(position);
+}
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) velocity.x -= accel * dt;
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) velocity.x += accel * dt;
+void Player::handleInput(float dt)
+{
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+        velocity.x -= accel * dt;
+    }
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+        velocity.x += accel * dt;
+    }
     else {
-        // Apply deceleration when no input
-        if (velocity.x > 0) {
+        // decelerate smoothly
+        if (velocity.x > 0.f) {
             velocity.x -= decel * dt;
-            if (velocity.x < 0) velocity.x = 0;
+            if (velocity.x < 0.f) velocity.x = 0.f;
         }
-        else if (velocity.x < 0) {
+        else if (velocity.x < 0.f) {
             velocity.x += decel * dt;
-            if (velocity.x > 0) velocity.x = 0;
+            if (velocity.x > 0.f) velocity.x = 0.f;
         }
     }
 
-    // Clamp horizontal speed
     if (velocity.x > maxSpeed) velocity.x = maxSpeed;
     if (velocity.x < -maxSpeed) velocity.x = -maxSpeed;
 
-    // Jump
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && jumpCount != 2) {
+    static bool jumpKeyDown = false;
+    bool space = sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
+    if (space && !jumpKeyDown && jumpCount < 2) {
         velocity.y = jumpStrength;
         jumpCount++;
     }
+    jumpKeyDown = space;
 }
 
-void Player::update(float dt) {
+void Player::update(float dt)
+{
     handleInput(dt);
 
-    // Gravity
+    // gravity
     velocity.y += gravity * dt;
     if (velocity.y > terminalVelocity) velocity.y = terminalVelocity;
 
-    // Update position
+    // update position
     position += velocity * dt;
 
-    // Ground collision
-    if (position.y >= 500.0f) {
-        position.y = 500.0f;
-        velocity.y = 0.0f;
-		jumpCount = 0; // reset jumps on landing
-    // Simple ground collision
-    float groundLevel = 600.0f - m_shape.getSize().x/2;
-    if (position.y >= groundLevel) {
-        position.y = groundLevel;
-        velocity.y = 0;
-        jumpCount = 0; // reset jumps on landing
-    }
+    // respawn if falling too far
+    if (position.y > 3000.f) resetTo({ 100.f, 600.f });
 
-    m_shape.setPosition(position);
+    shape.setPosition(position);
+}
+
+void Player::draw(sf::RenderWindow& win) const
+{
+    win.draw(shape);
+    // simple shadow
+    sf::CircleShape shadow(22.f);
+    shadow.setOrigin(shadow.getRadius(), shadow.getRadius());
+    shadow.setPosition(position.x, position.y + shape.getSize().y / 2.f + 8.f);
+    shadow.setFillColor(sf::Color(0, 0, 0, 100));
+    win.draw(shadow);
+}
+
+void Player::setPosition(const sf::Vector2f& pos)
+{
+    position = pos;
+    shape.setPosition(pos);
+}
+
+sf::FloatRect Player::getBounds() const
+{
+    return shape.getGlobalBounds();
+}
+
+sf::Vector2f Player::getSize() const
+{
+    return shape.getSize();
 }
